@@ -30,10 +30,6 @@ public final class YetAnotherRTP extends JavaPlugin {
     int pointZ = getConfig().getInt("settings.pointz");
     int minDist = getConfig().getInt("settings.min-dist");
     int maxDist = getConfig().getInt("settings.max-dist") + 1;
-    int randomX;
-    int randomZ;
-    int highestY;
-    Location safeLocation;
     int waittime = getConfig().getInt("settings.wait-time");
     String runRTP = getConfig().getString("messages.run-rtp");
     String afterRTP = getConfig().getString("messages.afterRTP");
@@ -41,20 +37,20 @@ public final class YetAnotherRTP extends JavaPlugin {
     private void rtp(Player player) {
         player.sendPlainMessage(runRTP);
         CompletableFuture.supplyAsync(() -> {
-            randomX = rand.nextInt(minDist, maxDist) + pointX;
-            randomZ = rand.nextInt(minDist, maxDist) + pointZ;
+            int randomX = rand.nextInt(minDist, maxDist) + pointX;
+            int randomZ = rand.nextInt(minDist, maxDist) + pointZ;
             if (rand.nextBoolean()) {
                 randomX = -randomX;
             }
             if (rand.nextBoolean()) {
                 randomZ = -randomZ;
             }
-            highestY = world.getHighestBlockYAt(randomX, randomZ) + 1;
-            safeLocation = new Location(world, randomX, highestY, randomZ);
+            int highestY = world.getHighestBlockYAt(randomX, randomZ) + 1;
+            Location safeLocation = new Location(world, randomX, highestY, randomZ);
             return safeLocation;
         }).thenComposeAsync((safeLocation) -> world.getChunkAtAsyncUrgently(safeLocation).thenApplyAsync((chunk) -> {
             chunk.addPluginChunkTicket(this);
-            getServer().getScheduler().runTaskLater(this, () -> player.teleportAsync(safeLocation).thenRun(() -> {
+            getServer().getScheduler().runTaskLaterAsynchronously(this, () -> player.teleportAsync(safeLocation).thenRun(() -> {
                 chunk.removePluginChunkTicket(this);
                 player.sendPlainMessage(afterRTP);
             }), waittime);

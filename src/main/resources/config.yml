@@ -7,14 +7,14 @@ settings:
   max-dist: 5000
   # Max distance away from specified location. 5000 = -5000 to 5000 in x and z
   min-dist: 100
-  # Min distance away from specified location
+  # Min distance away from the center of the RTP teleport range
   pointx: 0
   pointz: 0
   # The center of the RTP teleport range. X and Z coords
   wait-time: 3
   # Time to wait before teleportation. Useful if chunks aren't loading fast enough. Time is in seconds
   world-dest: world
-  # The specified world to teleport to.
+  # The specified world to teleport to
 messages:
   run-rtp: Beginning RTP.
   # Message to send when RTP command is ran
