@@ -10,6 +10,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -19,7 +20,7 @@ public final class YetAnotherRTP extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
     }
-    //TODO Add wait time between /RTP uses
+    //TODO Add wait time between /RTP uses. Add world support. Fix metadata commands
     @Override
     public void onDisable() {
         // Plugin shutdown logic
@@ -28,7 +29,7 @@ public final class YetAnotherRTP extends JavaPlugin {
     int pointX = getConfig().getInt("settings.pointx");
     int pointZ = getConfig().getInt("settings.pointz");
     int minDist = getConfig().getInt("settings.min-dist");
-    int maxDist = getConfig().getInt("settings.max-dist");
+    int maxDist = getConfig().getInt("settings.max-dist") + 1;
     int randomX;
     int randomZ;
     int highestY;
@@ -36,12 +37,12 @@ public final class YetAnotherRTP extends JavaPlugin {
     int waittime = getConfig().getInt("settings.wait-time");
     String runRTP = getConfig().getString("messages.run-rtp");
     String afterRTP = getConfig().getString("messages.afterRTP");
+    World world = getServer().getWorld((getConfig().getString("settings.world-dest")));
     private void rtp(Player player) {
         player.sendPlainMessage(runRTP);
-        World world = player.getWorld();
         CompletableFuture.supplyAsync(() -> {
-            randomX = rand.nextInt(minDist, maxDist + 1) + pointX;
-            randomZ = rand.nextInt(minDist, maxDist + 1) + pointZ;
+            randomX = rand.nextInt(minDist, maxDist) + pointX;
+            randomZ = rand.nextInt(minDist, maxDist) + pointZ;
             if (rand.nextBoolean()) {
                 randomX = -randomX;
             }
@@ -53,17 +54,17 @@ public final class YetAnotherRTP extends JavaPlugin {
             return safeLocation;
         }).thenComposeAsync((safeLocation) -> world.getChunkAtAsyncUrgently(safeLocation).thenApplyAsync((chunk) -> {
             chunk.addPluginChunkTicket(this);
-            getServer().getScheduler().runTaskLater(this, () -> {
-                player.teleportAsync(safeLocation).thenRun(() -> {
-                    chunk.removePluginChunkTicket(this);
-                    player.sendPlainMessage(afterRTP);
-                });
-            }, waittime);
+            getServer().getScheduler().runTaskLater(this, () -> player.teleportAsync(safeLocation).thenRun(() -> {
+                chunk.removePluginChunkTicket(this);
+                player.sendPlainMessage(afterRTP);
+            }), waittime);
             player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
             return chunk;
         }));
     }
 
+    String noPerm = getConfig().getString("messages.no-perm");
+    String usedOnce = getConfig().getString("messages.used-once");
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (command.getName().equalsIgnoreCase("rtp")) {
@@ -75,17 +76,17 @@ public final class YetAnotherRTP extends JavaPlugin {
                                 rtp((Player) sender);
                                 return true;
                             } else {
-                                sender.sendPlainMessage(getConfig().getString("messages.used-once"));
+                                sender.sendPlainMessage(usedOnce);
                             }
                         } else {
-                            sender.sendPlainMessage(getConfig().getString("messages.no-perm"));
+                            sender.sendPlainMessage(noPerm);
                         }
                     } else {
                         if (sender.hasPermission("rtp.runcmd")) {
                             rtp((Player) sender);
                             return true;
                         } else {
-                            sender.sendPlainMessage(getConfig().getString("messages.no-perm"));
+                            sender.sendPlainMessage(noPerm);
                             return false;
                         }
                     }
@@ -94,7 +95,7 @@ public final class YetAnotherRTP extends JavaPlugin {
                         rtp((Player) sender);
                         return true;
                     } else {
-                        sender.sendPlainMessage(getConfig().getString("messages.used-once"));
+                        sender.sendPlainMessage(usedOnce);
                     }
                 } else {
                     rtp((Player) sender);
