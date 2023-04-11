@@ -1,0 +1,24 @@
+version: 1
+settings:
+  one-use: false
+  # Makes the command one use only
+  require-perm: false
+  # Makes the command require a permission
+  max-dist: 5000
+  # Max distance away from specified location. 5000 = -5000 to 5000 in x and z
+  min-dist: 100
+  # Min distance away from specified location
+  loaded-chunks: 10
+  # Amount of chunks to load around the selected location
+  pointx: 0
+  pointz: 0
+  # The center of the RTP teleport range
+  wait-time: 3
+  # Time to wait before teleportation. Useful if chunks aren't loading fast enough. Time is in seconds
+messages:
+  run-rtp: Beginning RTP.
+  # Message to send when RTP command is ran
+  after-rtp:
+  # Message to send after RTP command is ran
+  no-perm: You don't have permission to run this command.
+  # Message to send when lacking permission to run RTP command

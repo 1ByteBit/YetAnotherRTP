@@ -2,3 +2,10 @@ name: YetAnotherRTP
 version: '${project.version}'
 main: com.github.bitbyte.yetanotherrtp.YetAnotherRTP
 api-version: 1.19
+author: 1BitByte
+commands:
+  rtp:
+    description: Main RTP command
+permissions:
+  rtp.runcmd:
+    default: op
