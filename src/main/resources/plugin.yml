@@ -1,0 +1,4 @@
+name: YetAnotherRTP
+version: '${project.version}'
+main: com.github.bitbyte.yetanotherrtp.YetAnotherRTP
+api-version: 1.19
