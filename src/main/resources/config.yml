@@ -22,3 +22,7 @@ messages:
   # Message to send after RTP command is ran
   no-perm: You don't have permission to run this command.
   # Message to send when lacking permission to run RTP command
+  used-once: You've already used this command once
+  # Message to send when command has already been used
+  invalid-player: Invalid player specified
+  # Message to send when an invalid player is used in a command

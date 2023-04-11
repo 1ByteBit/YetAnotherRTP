@@ -6,6 +6,10 @@ author: 1BitByte
 commands:
   rtp:
     description: Main RTP command
+  addused:
+    description: Allows someone to reuse the RTP command
+  removeused:
+    description: Makes the plugin act as if they've already used the RTP command
 permissions:
   rtp.runcmd:
     default: op

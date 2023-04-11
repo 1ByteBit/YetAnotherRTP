@@ -1,10 +1,12 @@
 package com.github.bitbyte.yetanotherrtp;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,11 +59,11 @@ public final class YetAnotherRTP extends JavaPlugin {
                     player.sendPlainMessage(afterRTP);
                 });
             }, waittime);
+            player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
             return chunk;
         }));
     }
 
-    String noPerm = getConfig().getString("messages.no-perm");
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (command.getName().equalsIgnoreCase("rtp")) {
@@ -69,21 +71,31 @@ public final class YetAnotherRTP extends JavaPlugin {
                 if (getConfig().getBoolean("settings.require-perm")) {
                     if (getConfig().getBoolean("settings.one-use")) {
                         if (sender.hasPermission("rtp.runcmd")) {
-                            // Check if it's already been used
+                            if (!((Player) sender).hasMetadata("RTP.UsedCommand")) {
+                                rtp((Player) sender);
+                                return true;
+                            } else {
+                                sender.sendPlainMessage(getConfig().getString("messages.used-once"));
+                            }
                         } else {
-                            sender.sendPlainMessage(noPerm);
+                            sender.sendPlainMessage(getConfig().getString("messages.no-perm"));
                         }
                     } else {
                         if (sender.hasPermission("rtp.runcmd")) {
                             rtp((Player) sender);
                             return true;
                         } else {
-                            sender.sendPlainMessage(noPerm);
+                            sender.sendPlainMessage(getConfig().getString("messages.no-perm"));
                             return false;
                         }
                     }
                 } else if (getConfig().getBoolean("settings.one-use")) {
-                    // One use
+                    if (!((Player) sender).hasMetadata("RTP.UsedCommand")) {
+                        rtp((Player) sender);
+                        return true;
+                    } else {
+                        sender.sendPlainMessage(getConfig().getString("messages.used-once"));
+                    }
                 } else {
                     rtp((Player) sender);
                     return true;
@@ -91,6 +103,28 @@ public final class YetAnotherRTP extends JavaPlugin {
             } else {
                 sender.sendPlainMessage("You must be a player to execute this command");
                 return false;
+            }
+        } else if (command.getName().equalsIgnoreCase("removeused")) {
+            if (args.length == 1) {
+                Player player = Bukkit.getPlayer(args[0]);
+                if (player == null) {
+                    sender.sendPlainMessage(getConfig().getString("messages.invalid-player"));
+                    return false;
+                } else {
+                    player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, false));
+                    return true;
+                }
+            }
+        } else if (command.getName().equalsIgnoreCase("addused")) {
+            if (args.length == 1) {
+                Player player = Bukkit.getPlayer(args[0]);
+                if (player == null) {
+                    sender.sendPlainMessage(getConfig().getString("messages.invalid-player"));
+                    return false;
+                } else {
+                    player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
+                    return true;
+                }
             }
         }
         return false;
