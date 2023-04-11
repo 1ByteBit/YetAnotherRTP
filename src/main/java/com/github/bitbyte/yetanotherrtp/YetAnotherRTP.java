@@ -9,12 +9,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Supplier;
 
 public final class YetAnotherRTP extends JavaPlugin {
 
@@ -22,21 +22,35 @@ public final class YetAnotherRTP extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
     }
-    //TODO Add wait time between /RTP uses
     @Override
     public void onDisable() {
         // Plugin shutdown logic
     }
-    ThreadLocalRandom rand = ThreadLocalRandom.current();
-    int pointX = getConfig().getInt("settings.pointx");
-    int pointZ = getConfig().getInt("settings.pointz");
-    int minDist = getConfig().getInt("settings.min-dist");
-    int maxDist = getConfig().getInt("settings.max-dist") + 1;
-    int waittime = getConfig().getInt("settings.wait-time");
-    String runRTP = getConfig().getString("messages.run-rtp");
-    String afterRTP = getConfig().getString("messages.afterRTP");
+    private ThreadLocalRandom rand = ThreadLocalRandom.current();
+    private int pointX = getConfig().getInt("settings.pointx");
+    private int pointZ = getConfig().getInt("settings.pointz");
+    private int minDist = getConfig().getInt("settings.min-dist");
+    private int maxDist = getConfig().getInt("settings.max-dist") + 1;
+    private int waittime = getConfig().getInt("settings.wait-time");
+    private String runRTP = getConfig().getString("messages.run-rtp");
+    private String afterRTP = getConfig().getString("messages.afterRTP");
+    private World world;
+    private Map<UUID, Long> lastUseTime = new ConcurrentHashMap<>();
+    private long cooldownTime = getConfig().getLong("settings.cooldown");
     private void rtp(Player player) {
-        World world = getServer().getWorld(getConfig().getString("settings.world-dest"));
+        UUID uuid = player.getUniqueId();
+        long currentTime = System.currentTimeMillis() / 1000;
+        if (lastUseTime.containsKey(uuid)) {
+            long lastTime = lastUseTime.get(uuid);
+            long timeSinceLastUse = currentTime - lastTime;
+            if (timeSinceLastUse < cooldownTime) {
+                if (!player.hasPermission("rtp.exempt")) {
+                    player.sendPlainMessage("You can't use this command for another " + (cooldownTime - timeSinceLastUse) + " seconds.");
+                    return;
+                }
+            }
+        }
+        world = getServer().getWorld(getConfig().getString("settings.world-dest"));
         player.sendPlainMessage(runRTP);
         CompletableFuture.supplyAsync(() -> {
             int randomX = rand.nextInt(minDist, maxDist) + pointX;
@@ -53,16 +67,17 @@ public final class YetAnotherRTP extends JavaPlugin {
         }).thenComposeAsync((safeLocation) -> world.getChunkAtAsyncUrgently(safeLocation).thenApplyAsync((chunk) -> {
             chunk.addPluginChunkTicket(this);
             getServer().getScheduler().runTaskLaterAsynchronously(this, () -> player.teleportAsync(safeLocation).thenRun(() -> {
-                chunk.removePluginChunkTicket(this);
                 player.sendPlainMessage(afterRTP);
+                chunk.removePluginChunkTicket(this);
             }), waittime);
             player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
+            lastUseTime.put(uuid, currentTime);
             return chunk;
         }));
     }
 
-    String noPerm = getConfig().getString("messages.no-perm");
-    String usedOnce = getConfig().getString("messages.used-once");
+    private String noPerm = getConfig().getString("messages.no-perm");
+    private String usedOnce = getConfig().getString("messages.used-once");
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (command.getName().equalsIgnoreCase("rtp")) {

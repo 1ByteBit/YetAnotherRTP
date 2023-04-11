@@ -15,6 +15,8 @@ settings:
   # Time to wait before teleportation. Useful if chunks aren't loading fast enough. Time is in seconds
   world-dest: world
   # The specified world to teleport to
+  cooldown: 60
+  # Amount of seconds to wait before player can use the command again
 messages:
   run-rtp: Beginning RTP.
   # Message to send when RTP command is ran
@@ -25,3 +27,4 @@ messages:
   used-once: You've already used this command once
   # Message to send when command has already been used
   invalid-player: Invalid player specified
+  # Message to send when an invalid player is specified for a command

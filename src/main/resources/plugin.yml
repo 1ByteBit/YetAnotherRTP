@@ -13,3 +13,5 @@ commands:
 permissions:
   rtp.runcmd:
     default: op
+  rtp.exempt:
+    description: Exempts players from the cooldown time
