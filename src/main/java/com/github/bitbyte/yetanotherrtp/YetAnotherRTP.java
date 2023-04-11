@@ -112,6 +112,7 @@ public final class YetAnotherRTP extends JavaPlugin {
                     return false;
                 } else {
                     player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, false));
+                    sender.sendPlainMessage("Removed metadata from " + player);
                     return true;
                 }
             }
@@ -123,6 +124,7 @@ public final class YetAnotherRTP extends JavaPlugin {
                     return false;
                 } else {
                     player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
+                    sender.sendPlainMessage("Added metadata to " + player);
                     return true;
                 }
             }

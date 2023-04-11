@@ -8,8 +8,6 @@ settings:
   # Max distance away from specified location. 5000 = -5000 to 5000 in x and z
   min-dist: 100
   # Min distance away from specified location
-  loaded-chunks: 10
-  # Amount of chunks to load around the selected location
   pointx: 0
   pointz: 0
   # The center of the RTP teleport range. X and Z coords
@@ -26,3 +24,6 @@ messages:
   # Message to send when command has already been used
   invalid-player: Invalid player specified
   # Message to send when an invalid player is used in a command
+  remove-used:
+  # Message to send after using the removeused command
+  add-used:
