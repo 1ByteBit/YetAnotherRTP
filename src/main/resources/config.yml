@@ -12,7 +12,7 @@ settings:
   # Amount of chunks to load around the selected location
   pointx: 0
   pointz: 0
-  # The center of the RTP teleport range
+  # The center of the RTP teleport range. X and Z coords
   wait-time: 3
   # Time to wait before teleportation. Useful if chunks aren't loading fast enough. Time is in seconds
 messages:
