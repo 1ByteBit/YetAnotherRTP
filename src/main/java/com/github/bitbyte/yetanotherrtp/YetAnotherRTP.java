@@ -19,7 +19,7 @@ public final class YetAnotherRTP extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
     }
-
+    //TODO Add wait time between /RTP uses
     @Override
     public void onDisable() {
         // Plugin shutdown logic
@@ -112,7 +112,7 @@ public final class YetAnotherRTP extends JavaPlugin {
                     return false;
                 } else {
                     player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, false));
-                    sender.sendPlainMessage("Removed metadata from " + player);
+                    sender.sendPlainMessage("Removed metadata from " + player.getName());
                     return true;
                 }
             }
@@ -124,7 +124,7 @@ public final class YetAnotherRTP extends JavaPlugin {
                     return false;
                 } else {
                     player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
-                    sender.sendPlainMessage("Added metadata to " + player);
+                    sender.sendPlainMessage("Added metadata to " + player.getName());
                     return true;
                 }
             }

@@ -23,7 +23,3 @@ messages:
   used-once: You've already used this command once
   # Message to send when command has already been used
   invalid-player: Invalid player specified
-  # Message to send when an invalid player is used in a command
-  remove-used:
-  # Message to send after using the removeused command
-  add-used:
