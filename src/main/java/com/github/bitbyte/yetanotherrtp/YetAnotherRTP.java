@@ -9,10 +9,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 public final class YetAnotherRTP extends JavaPlugin {
 
@@ -20,7 +22,7 @@ public final class YetAnotherRTP extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
     }
-    //TODO Add wait time between /RTP uses. Add world support. Fix metadata commands
+    //TODO Add wait time between /RTP uses
     @Override
     public void onDisable() {
         // Plugin shutdown logic
@@ -33,8 +35,8 @@ public final class YetAnotherRTP extends JavaPlugin {
     int waittime = getConfig().getInt("settings.wait-time");
     String runRTP = getConfig().getString("messages.run-rtp");
     String afterRTP = getConfig().getString("messages.afterRTP");
-    World world = getServer().getWorld((getConfig().getString("settings.world-dest")));
     private void rtp(Player player) {
+        World world = getServer().getWorld(getConfig().getString("settings.world-dest"));
         player.sendPlainMessage(runRTP);
         CompletableFuture.supplyAsync(() -> {
             int randomX = rand.nextInt(minDist, maxDist) + pointX;
@@ -108,7 +110,7 @@ public final class YetAnotherRTP extends JavaPlugin {
                     sender.sendPlainMessage(getConfig().getString("messages.invalid-player"));
                     return false;
                 } else {
-                    player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, false));
+                    player.removeMetadata("RTP.UsedCommand", this);
                     sender.sendPlainMessage("Removed metadata from " + player.getName());
                     return true;
                 }
