@@ -35,19 +35,20 @@ public final class YetAnotherRTP extends JavaPlugin {
     private final String runRTP = getConfig().getString("messages.run-rtp");
     private final String afterRTP = getConfig().getString("messages.afterRTP");
     private World world;
-    private Map<UUID, Long> lastUseTime = new ConcurrentHashMap<>();
-    private final long cooldownTime = getConfig().getLong("settings.cooldown");
+    private String dest = getConfig().getString("settings.world-dest");
+    private final Map<UUID, Integer> lastUseTime = new ConcurrentHashMap<>();
+    private final int cooldownTime = getConfig().getInt("settings.cooldown");
     private void rtp(Player player) {
         UUID uuid = player.getUniqueId();
-        long currentTime = System.currentTimeMillis() / 1000;
+        int currentTime = (int) System.currentTimeMillis() / 1000;
         if (lastUseTime.containsKey(uuid)) {
-            long timeSinceLastUse = currentTime - lastUseTime.get(uuid);
+            int timeSinceLastUse = currentTime - lastUseTime.get(uuid);
             if (timeSinceLastUse < cooldownTime & !player.hasPermission("rtp.exempt")) {
                 player.sendPlainMessage("You can't use this command for another " + (cooldownTime - timeSinceLastUse) + " seconds.");
                 return;
             }
         }
-        world = getServer().getWorld(getConfig().getString("settings.world-dest"));
+        world = getServer().getWorld(dest);
         player.sendPlainMessage(runRTP);
         CompletableFuture.supplyAsync(() -> {
             int randomX = rand.nextInt(minDist, maxDist) + pointX;
