@@ -41,13 +41,10 @@ public final class YetAnotherRTP extends JavaPlugin {
         UUID uuid = player.getUniqueId();
         long currentTime = System.currentTimeMillis() / 1000;
         if (lastUseTime.containsKey(uuid)) {
-            long lastTime = lastUseTime.get(uuid);
-            long timeSinceLastUse = currentTime - lastTime;
-            if (timeSinceLastUse < cooldownTime) {
-                if (!player.hasPermission("rtp.exempt")) {
-                    player.sendPlainMessage("You can't use this command for another " + (cooldownTime - timeSinceLastUse) + " seconds.");
-                    return;
-                }
+            long timeSinceLastUse = currentTime - lastUseTime.get(uuid);
+            if (timeSinceLastUse < cooldownTime & !player.hasPermission("rtp.exempt")) {
+                player.sendPlainMessage("You can't use this command for another " + (cooldownTime - timeSinceLastUse) + " seconds.");
+                return;
             }
         }
         world = getServer().getWorld(getConfig().getString("settings.world-dest"));
