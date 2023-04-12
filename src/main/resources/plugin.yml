@@ -8,8 +8,10 @@ commands:
     description: Main RTP command
   addused:
     description: Allows someone to reuse the RTP command
+    permission: rtp.add
   removeused:
     description: Makes the plugin act as if they've already used the RTP command
+    permission: rtp.remove
 permissions:
   rtp.runcmd:
     default: op

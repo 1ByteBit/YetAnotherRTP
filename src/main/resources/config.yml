@@ -16,7 +16,7 @@ settings:
   world-dest: world
   # The specified world to teleport to
   cooldown: 60
-  # Amount of seconds to wait before player can use the command again
+  # Amount of seconds to wait before player can use the command againrequ
 messages:
   run-rtp: Beginning RTP.
   # Message to send when RTP command is ran
