@@ -35,22 +35,22 @@ public final class YetAnotherRTP extends JavaPlugin {
     private final String runRTP = getConfig().getString("messages.run-rtp");
     private final String afterRTP = getConfig().getString("messages.afterRTP");
     private World world;
-    private String dest = getConfig().getString("settings.world-dest");
-    private final Map<UUID, Integer> lastUseTime = new ConcurrentHashMap<>();
+    private final String dest = getConfig().getString("settings.world-dest");
+    private Map<UUID, Integer> lastUseTime = new ConcurrentHashMap<>();
     private final int cooldownTime = getConfig().getInt("settings.cooldown");
     private void rtp(Player player) {
         UUID uuid = player.getUniqueId();
         int currentTime = (int) System.currentTimeMillis() / 1000;
         if (lastUseTime.containsKey(uuid)) {
             int timeSinceLastUse = currentTime - lastUseTime.get(uuid);
-            if (timeSinceLastUse < cooldownTime & !player.hasPermission("rtp.exempt")) {
+            if (timeSinceLastUse < cooldownTime && !player.hasPermission("rtp.exempt")) {
                 player.sendPlainMessage("You can't use this command for another " + (cooldownTime - timeSinceLastUse) + " seconds.");
                 return;
             }
         }
         world = getServer().getWorld(dest);
         player.sendPlainMessage(runRTP);
-        CompletableFuture.supplyAsync(() -> {
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
             int randomX = rand.nextInt(minDist, maxDist) + pointX;
             int randomZ = rand.nextInt(minDist, maxDist) + pointZ;
             if (rand.nextBoolean()) {
@@ -61,23 +61,22 @@ public final class YetAnotherRTP extends JavaPlugin {
             }
             int highestY = world.getHighestBlockYAt(randomX, randomZ) + 1;
             Location safeLocation = new Location(world, randomX, highestY, randomZ);
-            return safeLocation;
-        }).thenComposeAsync((safeLocation) -> world.getChunkAtAsyncUrgently(safeLocation).thenApplyAsync((chunk) -> {
-            chunk.addPluginChunkTicket(this);
-            getServer().getScheduler().runTaskLaterAsynchronously(this, () -> player.teleportAsync(safeLocation).thenRun(() -> {
-                player.sendPlainMessage(afterRTP);
-                chunk.removePluginChunkTicket(this);
-            }), waittime);
-            player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
-            lastUseTime.put(uuid, currentTime);
-            return chunk;
-        }));
+            world.getChunkAtAsyncUrgently(safeLocation).thenAcceptAsync((chunk) -> {
+                chunk.addPluginChunkTicket(this);
+                getServer().getScheduler().runTaskLaterAsynchronously(this, () -> player.teleportAsync(safeLocation).thenRunAsync(() -> {
+                    player.sendPlainMessage(afterRTP);
+                    chunk.removePluginChunkTicket(this);
+                }), waittime);
+                player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
+                lastUseTime.put(uuid, currentTime);
+            });
+        });
     }
 
     private final String noPerm = getConfig().getString("messages.no-perm");
     private final String usedOnce = getConfig().getString("messages.used-once");
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (command.getName().equalsIgnoreCase("rtp")) {
             if (sender instanceof Player) {
                 if (getConfig().getBoolean("settings.require-perm")) {
