@@ -11,8 +11,6 @@ settings:
   pointx: 0
   pointz: 0
   # The center of the RTP teleport range. X and Z coords
-  wait-time: 3
-  # Time to wait before teleportation. Useful if chunks aren't loading fast enough. Time is in seconds
   world-dest: world
   # The specified world to teleport to
   cooldown: 60

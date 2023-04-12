@@ -30,7 +30,6 @@ public final class YetAnotherRTP extends JavaPlugin {
     private final int pointZ = getConfig().getInt("settings.pointz");
     private final int minDist = getConfig().getInt("settings.min-dist");
     private final int maxDist = getConfig().getInt("settings.max-dist") + 1;
-    private final int waittime = getConfig().getInt("settings.wait-time");
     private final String runRTP = getConfig().getString("messages.run-rtp");
     private final String afterRTP = getConfig().getString("messages.afterRTP");
     private World world;
@@ -62,10 +61,10 @@ public final class YetAnotherRTP extends JavaPlugin {
             Location safeLocation = new Location(world, randomX, highestY, randomZ);
             world.getChunkAtAsyncUrgently(safeLocation).thenAcceptAsync((chunk) -> {
                 chunk.addPluginChunkTicket(this);
-                getServer().getScheduler().runTaskLaterAsynchronously(this, () -> player.teleportAsync(safeLocation).thenRunAsync(() -> {
+                player.teleportAsync(safeLocation).thenRunAsync(() -> {
                     player.sendPlainMessage(afterRTP);
                     chunk.removePluginChunkTicket(this);
-                }), waittime);
+                });
                 player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
                 lastUseTime.put(uuid, currentTime);
             });
