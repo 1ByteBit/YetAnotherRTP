@@ -55,7 +55,7 @@ public final class YetAnotherRTP extends JavaPlugin {
                 randomX = -randomX;
             }
             if (rand.nextBoolean()) {
-                randomZ = -randomZ
+                randomZ = -randomZ;
             }
             int highestY = world.getHighestBlockYAt(randomX, randomZ) + 1;
             Location safeLocation = new Location(world, randomX, highestY, randomZ);
