@@ -26,17 +26,17 @@ public final class YetAnotherRTP extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
     }
-    private ThreadLocalRandom rand = ThreadLocalRandom.current();
-    private int pointX = getConfig().getInt("settings.pointx");
-    private int pointZ = getConfig().getInt("settings.pointz");
-    private int minDist = getConfig().getInt("settings.min-dist");
-    private int maxDist = getConfig().getInt("settings.max-dist") + 1;
-    private int waittime = getConfig().getInt("settings.wait-time");
-    private String runRTP = getConfig().getString("messages.run-rtp");
-    private String afterRTP = getConfig().getString("messages.afterRTP");
+    private final ThreadLocalRandom rand = ThreadLocalRandom.current();
+    private final int pointX = getConfig().getInt("settings.pointx");
+    private final int pointZ = getConfig().getInt("settings.pointz");
+    private final int minDist = getConfig().getInt("settings.min-dist");
+    private final int maxDist = getConfig().getInt("settings.max-dist") + 1;
+    private final int waittime = getConfig().getInt("settings.wait-time");
+    private final String runRTP = getConfig().getString("messages.run-rtp");
+    private final String afterRTP = getConfig().getString("messages.afterRTP");
     private World world;
     private Map<UUID, Long> lastUseTime = new ConcurrentHashMap<>();
-    private long cooldownTime = getConfig().getLong("settings.cooldown");
+    private final long cooldownTime = getConfig().getLong("settings.cooldown");
     private void rtp(Player player) {
         UUID uuid = player.getUniqueId();
         long currentTime = System.currentTimeMillis() / 1000;
@@ -73,8 +73,8 @@ public final class YetAnotherRTP extends JavaPlugin {
         }));
     }
 
-    private String noPerm = getConfig().getString("messages.no-perm");
-    private String usedOnce = getConfig().getString("messages.used-once");
+    private final String noPerm = getConfig().getString("messages.no-perm");
+    private final String usedOnce = getConfig().getString("messages.used-once");
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (command.getName().equalsIgnoreCase("rtp")) {
