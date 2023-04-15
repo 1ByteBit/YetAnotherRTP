@@ -17,25 +17,34 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class YetAnotherRTP extends JavaPlugin {
 
+    private static int pointX;
+    private static int pointZ;
+    private static int minDist;
+    private static int maxDist;
+    private static String runRTP;
+    private static String afterRTP;
+    private static String dest;
+    private static int cooldownTime;
+    private final ThreadLocalRandom rand = ThreadLocalRandom.current();
+    private World world;
+    private final Map<UUID, Integer> lastUseTime = new ConcurrentHashMap<>();
+
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        pointX = getConfig().getInt("settings.pointx");
+        pointZ = getConfig().getInt("settings.pointz");
+        minDist = getConfig().getInt("settings.min-dist");
+        maxDist = getConfig().getInt("settings.max-dist") + 1;
+        runRTP = getConfig().getString("messages.run-rtp");
+        afterRTP = getConfig().getString("messages.afterRTP");
+        dest = getConfig().getString("settings.world-dest");
+        cooldownTime = getConfig().getInt("settings.cooldown");
     }
     @Override
     public void onDisable() {
         // Plugin shutdown logic
     }
-    private final ThreadLocalRandom rand = ThreadLocalRandom.current();
-    private final int pointX = getConfig().getInt("settings.pointx");
-    private final int pointZ = getConfig().getInt("settings.pointz");
-    private final int minDist = getConfig().getInt("settings.min-dist");
-    private final int maxDist = getConfig().getInt("settings.max-dist") + 1;
-    private final String runRTP = getConfig().getString("messages.run-rtp");
-    private final String afterRTP = getConfig().getString("messages.afterRTP");
-    private World world;
-    private final String dest = getConfig().getString("settings.world-dest");
-    private Map<UUID, Integer> lastUseTime = new ConcurrentHashMap<>();
-    private final int cooldownTime = getConfig().getInt("settings.cooldown");
     private void rtp(Player player) {
         UUID uuid = player.getUniqueId();
         int currentTime = (int) System.currentTimeMillis() / 1000;
@@ -60,16 +69,13 @@ public final class YetAnotherRTP extends JavaPlugin {
             int highestY = world.getHighestBlockYAt(randomX, randomZ) + 1;
             Location safeLocation = new Location(world, randomX, highestY, randomZ);
             world.getChunkAtAsyncUrgently(safeLocation).thenAcceptAsync((chunk) -> {
-                chunk.addPluginChunkTicket(this);
-                player.teleportAsync(safeLocation).thenRunAsync(() -> {
-                    player.sendPlainMessage(afterRTP);
-                    chunk.removePluginChunkTicket(this);
+                player.teleportAsync(safeLocation);
+                player.sendPlainMessage(afterRTP);
                 });
                 player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
                 lastUseTime.put(uuid, currentTime);
             });
-        });
-    }
+        }
 
     private final String noPerm = getConfig().getString("messages.no-perm");
     private final String usedOnce = getConfig().getString("messages.used-once");
