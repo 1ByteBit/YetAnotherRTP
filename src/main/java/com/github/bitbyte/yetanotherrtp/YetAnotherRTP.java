@@ -68,11 +68,8 @@ public final class YetAnotherRTP extends JavaPlugin {
             }
             int highestY = world.getHighestBlockYAt(randomX, randomZ) + 1;
             Location safeLocation = new Location(world, randomX, highestY, randomZ);
-            world.getChunkAtAsyncUrgently(safeLocation).thenAcceptAsync((chunk) -> {
-                player.teleportAsync(safeLocation);
-                player.sendPlainMessage(afterRTP);
-                });
-                player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
+            world.getChunkAtAsyncUrgently(safeLocation).thenAcceptBoth(player.teleportAsync(safeLocation), (chunk, voidResult) -> player.sendPlainMessage(afterRTP));
+            player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
                 lastUseTime.put(uuid, currentTime);
             });
         }
