@@ -1,4 +1,4 @@
-version: 1
+version: 2
 settings:
   one-use: false
   # Makes the command one use only
@@ -15,7 +15,9 @@ settings:
   # The specified world to teleport to
   cooldown: 60
   # Amount of seconds to wait before player can use the command again
+  bstats: true
 messages:
+  # All messages use MiniMessage format. See here: https://docs.advntr.dev/minimessage/
   run-rtp: Beginning RTP.
   # Message to send when RTP command is ran
   after-rtp:

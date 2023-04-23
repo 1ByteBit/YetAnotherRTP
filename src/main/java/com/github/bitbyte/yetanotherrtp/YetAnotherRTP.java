@@ -1,5 +1,12 @@
 package com.github.bitbyte.yetanotherrtp;
 
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
+import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -10,6 +17,8 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,25 +34,44 @@ public final class YetAnotherRTP extends JavaPlugin {
     private static String afterRTP;
     private static String dest;
     private static int cooldownTime;
+    private static String noPerm;
+    private static String usedOnce;
+    private static String invalidPlayer;
     private final ThreadLocalRandom rand = ThreadLocalRandom.current();
     private World world;
     private final Map<UUID, Integer> lastUseTime = new ConcurrentHashMap<>();
+    private YamlDocument config;
 
     @Override
     public void onEnable() {
-        saveDefaultConfig();
+        try {
+            config = YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"),
+                    GeneralSettings.DEFAULT, LoaderSettings.builder().setAutoUpdate(true).build(), DumperSettings.DEFAULT, UpdaterSettings.builder().setVersioning(new BasicVersioning("version")).build());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        if (getConfig().getBoolean("settings.bstats")) {
+            Metrics metrics = new Metrics(this, 1234);
+        }
         pointX = getConfig().getInt("settings.pointx");
         pointZ = getConfig().getInt("settings.pointz");
         minDist = getConfig().getInt("settings.min-dist");
         maxDist = getConfig().getInt("settings.max-dist") + 1;
         runRTP = getConfig().getString("messages.run-rtp");
         afterRTP = getConfig().getString("messages.afterRTP");
+        invalidPlayer = getConfig().getString("messages.invalid-player");
+        usedOnce = getConfig().getString("messages.used-once");
+        noPerm = getConfig().getString("messages.no-perm");
         dest = getConfig().getString("settings.world-dest");
         cooldownTime = getConfig().getInt("settings.cooldown");
     }
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        try {
+            config.save();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
     private void rtp(Player player) {
         UUID uuid = player.getUniqueId();
@@ -56,7 +84,7 @@ public final class YetAnotherRTP extends JavaPlugin {
             }
         }
         world = getServer().getWorld(dest);
-        player.sendPlainMessage(runRTP);
+        player.sendRichMessage(runRTP);
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
             int randomX = rand.nextInt(minDist, maxDist) + pointX;
             int randomZ = rand.nextInt(minDist, maxDist) + pointZ;
@@ -68,14 +96,13 @@ public final class YetAnotherRTP extends JavaPlugin {
             }
             int highestY = world.getHighestBlockYAt(randomX, randomZ) + 1;
             Location safeLocation = new Location(world, randomX, highestY, randomZ);
-            world.getChunkAtAsyncUrgently(safeLocation).thenAcceptBoth(player.teleportAsync(safeLocation), (chunk, voidResult) -> player.sendPlainMessage(afterRTP));
+            world.getChunkAtAsyncUrgently(safeLocation).thenAcceptBoth(player.teleportAsync(safeLocation), (chunk, voidResult) -> player.sendRichMessage(afterRTP));
             player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
-                lastUseTime.put(uuid, currentTime);
+            lastUseTime.put(uuid, currentTime);
             });
         }
 
-    private final String noPerm = getConfig().getString("messages.no-perm");
-    private final String usedOnce = getConfig().getString("messages.used-once");
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (command.getName().equalsIgnoreCase("rtp")) {
@@ -87,17 +114,17 @@ public final class YetAnotherRTP extends JavaPlugin {
                                 rtp((Player) sender);
                                 return true;
                             } else {
-                                sender.sendPlainMessage(usedOnce);
+                                sender.sendRichMessage(usedOnce);
                             }
                         } else {
-                            sender.sendPlainMessage(noPerm);
+                            sender.sendRichMessage(noPerm);
                         }
                     } else {
                         if (sender.hasPermission("rtp.runcmd")) {
                             rtp((Player) sender);
                             return true;
                         } else {
-                            sender.sendPlainMessage(noPerm);
+                            sender.sendRichMessage(noPerm);
                             return false;
                         }
                     }
@@ -106,7 +133,7 @@ public final class YetAnotherRTP extends JavaPlugin {
                         rtp((Player) sender);
                         return true;
                     } else {
-                        sender.sendPlainMessage(usedOnce);
+                        sender.sendRichMessage(usedOnce);
                     }
                 } else {
                     rtp((Player) sender);
@@ -120,7 +147,7 @@ public final class YetAnotherRTP extends JavaPlugin {
             if (args.length == 1) {
                 Player player = Bukkit.getPlayer(args[0]);
                 if (player == null) {
-                    sender.sendPlainMessage(getConfig().getString("messages.invalid-player"));
+                    sender.sendRichMessage(invalidPlayer);
                     return false;
                 } else {
                     player.removeMetadata("RTP.UsedCommand", this);
@@ -131,13 +158,13 @@ public final class YetAnotherRTP extends JavaPlugin {
         } else if (command.getName().equalsIgnoreCase("addused")) {
             if (args.length == 1) {
                 Player player = Bukkit.getPlayer(args[0]);
-                if (player == null) {
-                    sender.sendPlainMessage(getConfig().getString("messages.invalid-player"));
-                    return false;
-                } else {
+                if (player != null) {
                     player.setMetadata("RTP.UsedCommand", new FixedMetadataValue(this, true));
                     sender.sendPlainMessage("Added metadata to " + player.getName());
                     return true;
+                } else {
+                    sender.sendRichMessage(invalidPlayer);
+                    return false;
                 }
             }
         }
