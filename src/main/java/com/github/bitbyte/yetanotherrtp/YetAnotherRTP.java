@@ -51,7 +51,7 @@ public final class YetAnotherRTP extends JavaPlugin {
             ex.printStackTrace();
         }
         if (getConfig().getBoolean("settings.bstats")) {
-            Metrics metrics = new Metrics(this, 1234);
+            Metrics metrics = new Metrics(this, 18280);
         }
         pointX = getConfig().getInt("settings.pointx");
         pointZ = getConfig().getInt("settings.pointz");
